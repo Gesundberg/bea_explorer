@@ -1,0 +1,13 @@
+{
+    "require": {
+        "slim/slim": "^3.11",
+        "guzzlehttp/guzzle": "~6.0",
+        "gesundberg/simplon_request": "^1.1"
+    },
+    
+    "autoload": {
+        "psr-4": {
+            "Finfor\\Helpers\\":  "src/finfor/Helpers/"
+    }
+  }
+}

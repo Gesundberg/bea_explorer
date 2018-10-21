@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="files/grid.css" >
+
+    <title>bea</title>
+
+
+    <script type="text/javascript" src="files/ractive.js"></script>
+    <script type="text/javascript" src="files/axios.min.js"></script>
+
+
+    <script type="text/javascript">
+
+
+        db = [{"name":"RegionalData","description":"The RegionalData dataset is obsolete. Please use the RegionalIncome and RegionalProduct datasets. See API documentation at bea.gov\/developers"},{"name":"NIPA","description":"Standard NIPA tables"},{"name":"NIUnderlyingDetail","description":"Standard NI underlying detail tables"},{"name":"MNE","description":"Multinational Enterprises"},{"name":"FixedAssets","description":"Standard Fixed Assets tables"},{"name":"ITA","description":"International Transactions Accounts"},{"name":"IIP","description":"International Investment Position"},{"name":"GDPbyIndustry","description":"GDP by Industry"},{"name":"RegionalIncome","description":"Regional Income data sets"},{"name":"RegionalProduct","description":"Regional Product data sets"},{"name":"InputOutput","description":"Input-Output Data"},{"name":"UnderlyingGDPbyIndustry","description":"Underlying GDP by Industry"},{"name":"IntlServTrade","description":"International Services Trade"},{"name":"APIDatasetMetaData","description":"Metadata about other API datasets"}];
+
+        first  = [[{"ParameterName":"KeyCode","ParameterDataType":"string","ParameterDescription":"The code of the key statistic requested","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"0","AllValue":""},{"ParameterName":"GeoFips","ParameterDataType":"string","ParameterDescription":"GeoFips Code","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":""},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"Year","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"}],[{"ParameterName":"TableID","ParameterDataType":"integer","ParameterDescription":"The standard NIPA table identifier","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"0","AllValue":""},{"ParameterName":"Frequency","ParameterDataType":"string","ParameterDescription":"A - Annual, Q-Quarterly, M-Monthly","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":""},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"List of year(s) of data to retrieve (X for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"X"},{"ParameterName":"ShowMillions","ParameterDataType":"string","ParameterDescription":"A flag indicating that million-dollar data should be returned.","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"N","MultipleAcceptedFlag":"0","AllValue":""}],[{"ParameterName":"TableID","ParameterDataType":"integer","ParameterDescription":"The standard NI underlying detail table identifier","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"0","AllValue":""},{"ParameterName":"Frequency","ParameterDataType":"string","ParameterDescription":"A - Annual, Q-Quarterly, M-Monthly","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":""},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"List of year(s) of data to retrieve (X for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"X"}],[{"ParameterName":"DirectionOfInvestment","ParameterDataType":"string","ParameterDescription":"Four Possible Values:  (inward,outward,parent,state)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"0"},{"ParameterName":"OwnershipLevel","ParameterDataType":"integer","ParameterDescription":"A value of 1 returns data for all affiliates.  A value of 0 returns data for majority-owned affiliates only.  Note that if directionOfInvestment = 'parent', then OwnershipLevel must be set to 1.","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"2","MultipleAcceptedFlag":"0"},{"ParameterName":"NonbankAffiliatesOnly","ParameterDataType":"integer","ParameterDescription":"A value of 1 returns data for nonbank affiliates only.  A value of 0 returns data for both bank and nonbank affiliates.  A value of 0 is required for data for 2007 forward (for FDIUS) for 2009 forward (for USDIA).","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"2","MultipleAcceptedFlag":"0"},{"ParameterName":"Classification ","ParameterDataType":"string","ParameterDescription":"Classification is a string used to obtain data that is broken down by both country and industry for either inward or outward data.  It can take one of four possible values:","ParameterIsRequiredFlag":"1","MultipleAcceptedFlag":"0"},{"ParameterName":"Country","ParameterDataType":"string","ParameterDescription":"Country is usually a number.  Because there can be several variants of a country's name, three-digit numeric codes are used to select countries.  A full list of these codes is available near the end of this document or can be obtained by using the GETPARAMETERVALUES method.  To obtain data for every country (including the all-country total) separately use 'all'.  To obtain a total for all countries, use '0000'.   To obtain data for multiple countries, each country code should be listed and separated by a comma.","ParameterIsRequiredFlag":"0","MultipleAcceptedFlag":"1","AllValue":"all"},{"ParameterName":"Industry","ParameterDataType":"string","ParameterDescription":"Industries are denoted by four-digit codes.  With a few exceptions, these codes follow the NAICS. To obtain data for every industry separately use 'all'.  To obtain a total for all industries, use '0000'.","ParameterIsRequiredFlag":"0","MultipleAcceptedFlag":"1","AllValue":"all"},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"Year is a 4-digit numeric variable.  To obtain data for multiple years, each year should be listed and separated by a comma. To obtain data for all years use 'all'.","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"all"},{"ParameterName":"State","ParameterDataType":"string","ParameterDescription":"State specifies the U.S. state or states for data on foreign direct investment in the United States.  The state is specified by using the two-digit FIPS code.  For \"Other U.S. areas\", use code '70'.  For \"Foreign\", use code '75'.  To obtain data for all states and areas use 'all'.  To obtain a total U.S. figure, use '90'.  ","ParameterIsRequiredFlag":"0","MultipleAcceptedFlag":"1","AllValue":"all"},{"ParameterName":"SeriesID","ParameterDataType":"string","ParameterDescription":"Series IDs","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"all","MultipleAcceptedFlag":"1","AllValue":"all"},{"ParameterName":"GetFootnotes","ParameterDataType":"string","ParameterDescription":"Footnotes for the datavalues","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"no","MultipleAcceptedFlag":"0"},{"ParameterName":"Investment","ParameterDataType":"string","ParameterDescription":"Investments are denoted by Three-digit codes. To obtain data for every investment separately use 'all'.  To obtain a total for all investments, use '000'.","ParameterIsRequiredFlag":"0","MultipleAcceptedFlag":"1","AllValue":"all"},{"ParameterName":"ParentInvestment","ParameterDataType":"string","ParameterDescription":"Investments are denoted by Three-digit codes. To obtain data for every investment separately use 'all'.  To obtain a total for all investments, use '000'.","ParameterIsRequiredFlag":"0","MultipleAcceptedFlag":"1","AllValue":"all"}],[{"ParameterName":"TableID","ParameterDataType":"integer","ParameterDescription":"The standard Fixed Assests table identifier","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"0","AllValue":""},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"List of year(s) of data to retrieve (X for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"X"}],[{"ParameterName":"Indicator","ParameterDataType":"string","ParameterDescription":"The indicator code for the type of transaction requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"AreaOrCountry","ParameterDataType":"string","ParameterDescription":"The area or country requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"AllCountries","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Frequency","ParameterDataType":"string","ParameterDescription":"A - Annual, QSA - Quarterly seasonally adjusted, QNSA - Quarterly not seasonally adjusted","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Year","ParameterDataType":"string","ParameterDescription":"Year requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"}],[{"ParameterName":"TypeOfInvestment","ParameterDataType":"string","ParameterDescription":"Type of investment","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Component","ParameterDataType":"string","ParameterDescription":"Component of changes in position","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Frequency","ParameterDataType":"string","ParameterDescription":"A - Annual, QNSA - Quarterly not seasonally adjusted","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Year","ParameterDataType":"string","ParameterDescription":"Year requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"}],[{"ParameterName":"Frequency","ParameterDataType":"string","ParameterDescription":"A - Annual, Q-Quarterly","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Industry","ParameterDataType":"string","ParameterDescription":"List of industries to retrieve (ALL for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"TableID","ParameterDataType":"integer","ParameterDescription":"The unique GDP by Industry table identifier (ALL for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"List of year(s) of data to retrieve (ALL for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"}],[{"ParameterName":"GeoFips","ParameterDataType":"string","ParameterDescription":"Comma-delimited list of 5-character geographic codes; COUNTY for all counties, STATE for all states, MSA for all MSAs, MIC for all Micropolitan Areas, PORT for all state metro\/nonmetro portions, DIV for all Metropolitan Divisions, CSA for all Combined Statistical Areas, state post office abbreviation for all counties in one state (e.g. NY)","ParameterIsRequiredFlag":"1","MultipleAcceptedFlag":"1"},{"ParameterName":"LineCode","ParameterDataType":"integer","ParameterDescription":"Line code for a statistic or industry","ParameterIsRequiredFlag":"1","MultipleAcceptedFlag":"0"},{"ParameterName":"TableName","ParameterDataType":"string","ParameterDescription":"Income or employment table to retrieve","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"0"},{"ParameterName":"Year","ParameterDataType":"string","ParameterDescription":"Comma-delimted list of years; LAST5 for latest 5 years; LAST10 for latest 10 years; ALL for all years","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"LAST5","MultipleAcceptedFlag":"1"}],[{"ParameterName":"Component","ParameterDataType":"integer","ParameterDescription":"GDP component code","ParameterIsRequiredFlag":"1","MultipleAcceptedFlag":"0"},{"ParameterName":"GeoFips","ParameterDataType":"string","ParameterDescription":"Comma-delimited list of 5-character geographic codes; STATE for all states, MSA for all MSAs","ParameterIsRequiredFlag":"1","MultipleAcceptedFlag":"1"},{"ParameterName":"IndustryId","ParameterDataType":"integer","ParameterDescription":"Industry code to retrieve from component","ParameterIsRequiredFlag":"1","MultipleAcceptedFlag":"0"},{"ParameterName":"Year","ParameterDataType":"string","ParameterDescription":"Comma-delimted list of years; LAST5 for latest 5 years; LAST10 for latest 10 years; ALL for all years","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"LAST5","MultipleAcceptedFlag":"1"}],[{"ParameterName":"TableID","ParameterDataType":"integer","ParameterDescription":"The unique Input-Output table identifier","ParameterIsRequiredFlag":"1","ParameterDefaultValue":" ","MultipleAcceptedFlag":"1","AllValue":""},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"List of year(s) of data to retrieve (ALL for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"}],[{"ParameterName":"Frequency","ParameterDataType":"string","ParameterDescription":"Q-Quarterly","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Industry","ParameterDataType":"string","ParameterDescription":"List of industries to retrieve (ALL for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"TableID","ParameterDataType":"integer","ParameterDescription":"The unique Underlying GDP by Industry table identifier (ALL for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Year","ParameterDataType":"integer","ParameterDescription":"List of year(s) of data to retrieve (ALL for All)","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":"ALL"}],[{"ParameterName":"TypeOfService","ParameterDataType":"string","ParameterDescription":"The type of service requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"TradeDirection","ParameterDataType":"string","ParameterDescription":"The trade direction requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Affiliation","ParameterDataType":"string","ParameterDescription":"The affiliation requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"AreaOrCountry","ParameterDataType":"string","ParameterDescription":"The area or country requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"AllCountries","MultipleAcceptedFlag":"1","AllValue":"ALL"},{"ParameterName":"Year","ParameterDataType":"string","ParameterDescription":"The year requested","ParameterIsRequiredFlag":"0","ParameterDefaultValue":"ALL","MultipleAcceptedFlag":"1","AllValue":"ALL"}],[{"ParameterName":"Dataset","ParameterDataType":"string","ParameterDescription":"A comma-delimited list of one or more API dataset names","ParameterIsRequiredFlag":"1","ParameterDefaultValue":"","MultipleAcceptedFlag":"1","AllValue":""}]];
+
+
+    headers = [];
+    for ( i = 0; i < first.length ; i++){
+        headers[i] = [];
+        objs = first[i];
+        for ( j = 0; j < objs.length ; j++){
+            for( key in objs[j]){
+                if(key !== undefined && key !== null && headers[i].indexOf(key)=== -1){
+                    headers[i].push(key);
+                }
+            }
+        }
+    }
+
+    function objHasKeys(obj, keys) {
+        next = keys.shift();
+        return obj[next] && (! keys.length || objHasKeys(obj[next], keys));
+    }
+
+    type = (function(global) {
+            cache={};
+            return function(obj) {
+
+                return obj === null ? 'null' : obj === global ? 'global' : (key = typeof obj) !== 'object' ? key: obj.nodeType ? 'object': cache[key = ({}).toString.call(obj)] || (cache[key] = key.slice(8, -1).toLowerCase());
+
+            }
+    }());
+
+    </script>
+
+
+
+
+</head>
+<body>
+<div id="sidebar">
+
+</div>
+
+<div id="content">
+
+    <div id="modal"></div>
+    <script id="modal-template" type="text/ractive">
+        {{#if result}}
+            <div class = "modal">
+                <div class = "modal-content">
+                    <span class = "close" on-click="@.toggle('result'), @.set('result_content', ''), @.set('result_header',''), @.set('result_error',''), @.set('params',''), @.set('addedItems',[{parameter:'', value:'', added: false}]) "> &times; </span>
+
+
+                    <table>
+                        <tr>
+                            <td>
+                                {{#each params}}
+                                    <p>{{@key}}: {{this}} </p>
+                                {{/each}}
+                            </td>
+                            <td>
+                                <p style="text-align:center">Add parameters to request:</p>
+                                <ul>
+                                    {{#each addedItems}}
+                                        <li>Parameter name: <input value='{{parameter}}'><span></span>
+                                            Parameter value: <input value='{{value}}'>
+                                            {{#if !added}}
+                                                <button class="btn-active" on-click="addParameterToRequest(@context), false"> Add </button>
+                                            {{else}}
+                                                <button class="btn-red" on-click="@context.splice( '../', @index, 1 )">x</button>
+                                            {{/if}}
+                                        </li>
+                                    {{/each}}
+                                </ul>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <hr/>
+                    <p style="color:red">
+                        {{result_error}}
+                    </p>
+
+                    <table class = "wraper">
+                             <tr class = "row visible">
+                                {{#each result_header}}
+                                    {{#if this.toLowerCase().indexOf('desc')!==-1}}
+                                        <td class = "small-description"> {{this}} </td>
+                                    {{else}}
+                                        <td class = "number"> {{this}} </td>
+                                    {{/if}}
+                                {{/each}}
+                             </tr>
+
+                             {{#each result_content: i}}
+                                <tr class="row">
+                                    {{#each result_content[i]}}
+                                        {{#if @key.toLowerCase().indexOf('desc')!==-1}}
+                                            <td class = "small-description"> {{this}} </td>
+                                        {{else}}
+                                            <td class="number">{{this}}</td>
+                                        {{/if}}
+                                    {{/each}}
+                                </tr>
+                             {{/each}}
+
+
+                    </table>
+                </div>
+            </div>
+        {{/if}}
+
+
+
+        {{#if visible}}
+            <div class = "modal">
+                <div class = "modal-content">
+                    <span class = "close" on-click="@.toggle('visible'), @.set('content', ''), @.set('modal_header',''), @.set('error',''), @.set('selectedItems', []) "> &times; </span>
+                    <p>DataseName: {{datasetname}}</p>
+                    <p>ParameterName: {{ParameterName}}</p>
+                    {{#if selectedItems}}
+                        <button class="btn-active" on-click="@.setValueOfParameter()"> Set Parameter </button>
+                    {{else}}
+                        <button class="btn-inactive" on-click="false"> Set Parameter </button>
+                    {{/if}}
+                    <hr/>
+                    <p style="color:red">
+                        {{error}}
+                    </p>
+                        <table class = "wraper">
+                             <tr class = "row visible">
+                                {{#each modal_header}}
+                                    {{#if this.toLowerCase().indexOf('desc')!==-1}}
+                                        <td class = "description"> {{this}} </td>
+                                    {{else}}
+                                        <td class = "number"> {{this}} </td>
+                                    {{/if}}
+
+                                {{/each}}
+                             </tr>
+
+                             {{#each content: i}}
+                                <tr class = "row">
+                                    {{#each content[i]}}
+                                        {{#if @key.toLowerCase().indexOf('desc')!==-1}}
+                                            <td class = "description"> {{this}} </td>
+                                        {{else}}
+                                            <td class = "number"> {{this}} </td>
+                                        {{/if}}
+                                    {{/each}}
+                                    {{#if modal_header.length==2}}
+                                        <td class = "number"> <input type="checkbox" name="{{selectedItems}}" value="{{this[modal_header[0]]}}"> </td>
+                                    {{/if}}
+                                </tr>
+                             {{/each}}
+
+                        </table>
+
+                </div>
+            </div>
+        {{/if}}
+    </script>
+
+    <div id="list"></div>
+    <script id="template" type="text/ractive">
+            <table class = "wraper">
+                {{#each datasets: num }}
+                    <tr class = "row" on-click="show">
+                        <td class = "number"> {{ num+1 }} </td>
+                        <td class = "database"> {{ name }} </td>
+                        <td class = "description" > {{ description }} </td>
+                    </tr>
+                    {{#if .visible}}
+
+                        <tr class = "row visible">
+                            <span class = "number"></span>
+
+
+                            {{#if buttoncheck}}
+                                <button class="btn-active number" on-click="getData"> Get Data </button>
+                            {{else}}
+                                <button class="btn-inactive number" on-click="false"> Get Data </button>
+                            {{/if}}
+
+                            {{#each ~/headers[num] }}
+                                {{#if this=='ParameterDescription'}}
+                                    <td class = "small-description"> {{ this }} </td>
+                                {{else}}
+                                    <td class = "number"> {{ this }} </td>
+                                {{/if}}
+                            {{/each}}
+                        </tr>
+
+                        {{#each ~/allsets[num] :i }}
+                                <tr class = "row visible">
+                                    <input type="text" class="number-2" on-change="@context.set('number', num), @this.fire('check', @context)" value="{{input}}">
+                                    {{#each ~/allsets[num][i]}}
+                                        {{#if @key=='ParameterDescription'}}
+                                            <td class = "small-description"> {{ this }} </td>
+                                        {{elseif @key=='ParameterName'}}
+                                            <td class = "number" on-click="@.getParameterValues( this, ~/datasets[num].name , @context, num)" > {{ this }}</td>
+                                        {{elseif @key=='input'}}
+                                        {{elseif @key=='number'}}
+                                        {{else}}
+                                            <td class = "number"> {{ this }} </td>
+                                        {{/if}}
+                                    {{/each}}
+                                </tr>
+                        {{/each}}
+
+
+
+                    {{/if}}
+
+                {{/each }}
+            </table>
+
+    </script>
+
+    <script type="text/javascript">
+        ractive = new Ractive({
+            target: '#list',
+            template: '#template',
+            data: {
+                datasets: db,
+                allsets: first,
+                headers: headers
+            },
+
+            on: {
+                show: function(ctx){
+                    ctx.toggle('.visible');
+                },
+                check: function(ctx){
+                    arrayOfValues = [];
+                    if(type(ctx.get('../')) === 'object'){
+                        arrayOfValues = ctx.get('../../');
+                    }else{
+                        arrayOfValues = ctx.get('../');
+                    }
+
+                    bit=1;
+                    for(i=0; i<arrayOfValues.length; i++){
+                        if(arrayOfValues[i].ParameterIsRequiredFlag==='1'){
+                            if(!(arrayOfValues[i].input.length > 0) ){
+                                bit = 0;
+                            }
+                        }
+                    }
+
+                    num = ctx.get('number');
+                    if(bit){
+                        this.set('~/datasets['+num+'].buttoncheck', true);
+                    }else{
+                        this.set('~/datasets['+num+'].buttoncheck', false);
+                    }
+
+                },
+                getData:function(ctx){
+
+                    num = ctx.get('@index');
+                    datasetname = ctx.get('name');
+                    ar = this.get('~/allsets['+num+']');
+                    list_params={};
+                    list_params.datasetname = datasetname;
+                    for(i=0; i<ar.length; i++){
+                        if(ar[i].input.length > 0){
+                            list_params[ar[i].ParameterName] = ar[i].input;
+                        }
+                    }
+
+                    console.log(JSON.stringify(list_params));
+
+                    axios.get('http://localhost:8080/data/GetData', {
+                        params: list_params
+                    }).then(function(response){
+                            if(objHasKeys(response, 'data:Data'.split(':'))){
+                                result_content = response.data.Data;
+                                result_header = [];
+                                for(i=0; i<result_content.length; i++){
+                                    for( key in result_content[i]){
+                                        if(key !== undefined && key !== null && result_header.indexOf(key)=== -1){
+                                            result_header.push(key);
+                                        }
+                                    }
+                                }
+
+                                modal.set('params', list_params);
+                                modal.set('result_header', result_header);
+                                modal.set('result_content', result_content);
+
+                            }else{
+                                modal.set('result_error', response.data +'REQUEST:'+JSON.stringify(response.request.responseURL));
+                            }
+                        }
+                    ).catch(function(error){
+                        modal.set('result_error', error.response.data +'REQUEST:'+JSON.stringify(error.request.responseURL));
+                    });
+
+                    modal.toggle('result');
+
+                }
+
+
+            },
+
+            getParameterValues: function(pname, dbname, ctx, num){
+                console.log(dbname+' '+pname);
+                axios.get('http://localhost:8080/data/GetParameterValues', {
+                    params:{
+                        datasetname: dbname,
+                        ParameterName: pname
+                    }
+                }).then(function(response){
+                    if(objHasKeys(response, 'data:ParamValue'.split(':'))){
+                        content = response.data.ParamValue;
+                        modal_header = [];
+                        for(i=0; i<content.length; i++){
+                            for( key in content[i]){
+                                if(key !== undefined && key !== null && modal_header.indexOf(key)=== -1){
+                                    modal_header.push(key);
+                                }
+                            }
+                        }
+
+                        modal.set('modal_header', modal_header);
+                        modal.set('content', content);
+
+                    }else{
+
+                        modal.set('error', response.data);
+                    }
+
+
+
+                }).catch(function(error){
+                    modal.set('error', error.response.data);
+                });
+
+                modal.set('datasetname', dbname);
+                modal.set('ParameterName', pname);
+                modal.set('ractive_context', ctx);
+                modal.set('ractive_num', num);
+                modal.toggle('visible');
+            }
+        });
+
+
+        modal = new Ractive({
+            target: '#modal',
+            template: '#modal-template',
+            data: {
+                datasetname: '',
+                ParameterName: '',
+                selectedItems: [],
+                addedItems: [{parameter:'', value:'', added: false}]
+            },
+            setValueOfParameter: function(){
+                con = this.get('ractive_context');
+                num = this.get('ractive_num');
+                con.set('../input', this.get('selectedItems').join(','));
+                con.set('../number', num);
+                ractive.fire('check', con);
+                this.set('content', '');
+                this.set('modal_header','');
+                this.set('error','');
+                this.set('selectedItems', []);
+                this.toggle('visible');
+            },
+            addParameterToRequest: function(ctx){
+                param = ctx.get('parameter');
+                val = ctx.get('value');
+                console.log(param+' '+val);
+                this.push('addedItems', {
+                    parameter: param,
+                    value: val,
+                    added: true
+                });
+                this.set('addedItems.0.parameter','');
+                this.set('addedItems.0.value','');
+            }
+        });
+    </script>
+
+</div>
+
+
+</body>
+</html>
